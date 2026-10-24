@@ -1,0 +1,60 @@
+@model InventoryManagementApp.Models.Location
+@{
+    ViewData["Title"] = "Add Warehouse Bin Location";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="d-flex align-items-center mb-3">
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3">
+                <i class="bi bi-arrow-left"></i> Back to Warehouses
+            </a>
+            <h4 class="fw-bold mb-0">Add Bin Location</h4>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form asp-action="CreateLocation" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="WarehouseId" class="form-label fw-semibold">Warehouse <span class="text-danger">*</span></label>
+                        <select asp-for="WarehouseId" asp-items="ViewBag.WarehouseList" class="form-select"></select>
+                        <span asp-validation-for="WarehouseId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="Aisle" class="form-label fw-semibold">Aisle <span class="text-danger">*</span></label>
+                            <input asp-for="Aisle" class="form-control" placeholder="e.g. A01" />
+                            <span asp-validation-for="Aisle" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Shelf" class="form-label fw-semibold">Shelf <span class="text-danger">*</span></label>
+                            <input asp-for="Shelf" class="form-control" placeholder="e.g. S02" />
+                            <span asp-validation-for="Shelf" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Bin" class="form-label fw-semibold">Bin <span class="text-danger">*</span></label>
+                            <input asp-for="Bin" class="form-control" placeholder="e.g. B05" />
+                            <span asp-validation-for="Bin" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="MaxVolumeCapacity" class="form-label fw-semibold">Max Volume Capacity (Cubic Ft / Optional)</label>
+                        <input asp-for="MaxVolumeCapacity" class="form-control" type="number" step="0.1" placeholder="e.g. 500" />
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-save me-1"></i> Save Location
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

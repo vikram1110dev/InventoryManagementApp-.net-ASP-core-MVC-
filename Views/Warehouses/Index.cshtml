@@ -1,0 +1,83 @@
+@model IEnumerable<InventoryManagementApp.Models.Warehouse>
+@{
+    ViewData["Title"] = "Warehouses & Bin Locations";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-building text-primary me-2"></i>Warehouses & Storage Facilities</h2>
+        <p class="text-muted mb-0">Manage distribution centers, storage zones, and bin coordinates (Aisle - Shelf - Bin).</p>
+    </div>
+    <div>
+        <a asp-action="CreateLocation" class="btn btn-primary d-flex align-items-center gap-1">
+            <i class="bi bi-plus-circle"></i> Add Bin Location
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    @foreach (var wh in Model)
+    {
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-secondary mb-1"><code>@wh.Code</code></span>
+                        <h5 class="fw-bold mb-0 text-dark">@wh.Name</h5>
+                        <div class="small text-muted"><i class="bi bi-geo-alt me-1 text-danger"></i>@wh.City — @wh.AddressLine</div>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary fs-6 px-3 py-2">
+                        @wh.Locations.Count Bins
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-3">Location Code</th>
+                                    <th>Aisle</th>
+                                    <th>Shelf</th>
+                                    <th>Bin</th>
+                                    <th class="text-center">Active Assets</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (wh.Locations.Any())
+                                {
+                                    @foreach (var loc in wh.Locations)
+                                    {
+                                        <tr>
+                                            <td class="ps-3">
+                                                <span class="location-tag">@loc.LocationCode</span>
+                                            </td>
+                                            <td>@loc.Aisle</td>
+                                            <td>@loc.Shelf</td>
+                                            <td>@loc.Bin</td>
+                                            <td class="text-center">
+                                                <span class="badge bg-light text-dark border">
+                                                    @loc.StockBalances.Count items
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center py-3 text-muted small">No bins configured yet.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0 py-3 text-end">
+                    <a asp-action="CreateLocation" asp-route-warehouseId="@wh.Id" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-plus-lg me-1"></i> Add Bin to this Warehouse
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

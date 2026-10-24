@@ -1,0 +1,124 @@
+@model InventoryManagementApp.Models.ViewModels.StockOperationViewModel
+@{
+    var title = Model.OperationType switch
+    {
+        InventoryManagementApp.Models.TransactionType.Receipt => "Stock In (Receiving Shipment)",
+        InventoryManagementApp.Models.TransactionType.Dispatch => "Dispatch (Outbound Shipment)",
+        InventoryManagementApp.Models.TransactionType.Adjustment => "Audit / Cycle Count Adjustment",
+        _ => "Stock Movement"
+    };
+    ViewData["Title"] = title;
+
+    var headerClass = Model.OperationType switch
+    {
+        InventoryManagementApp.Models.TransactionType.Receipt => "border-success",
+        InventoryManagementApp.Models.TransactionType.Dispatch => "border-danger",
+        _ => "border-primary"
+    };
+
+    var btnClass = Model.OperationType switch
+    {
+        InventoryManagementApp.Models.TransactionType.Receipt => "btn-success",
+        InventoryManagementApp.Models.TransactionType.Dispatch => "btn-danger",
+        _ => "btn-primary"
+    };
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="d-flex align-items-center mb-3">
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3">
+                <i class="bi bi-arrow-left"></i> Back to Inventory
+            </a>
+            <h4 class="fw-bold mb-0">@title</h4>
+        </div>
+
+        <div class="card border-0 shadow-sm @headerClass" style="border-top: 4px solid !important;">
+            <div class="card-body p-4">
+                <!-- Asset Info Header -->
+                <div class="bg-light p-3 rounded mb-4">
+                    <div class="row">
+                        <div class="col-md-7">
+                            <span class="badge bg-secondary mb-1">SKU: @Model.SKU</span>
+                            <h5 class="fw-bold text-dark mb-1">@Model.ProductName</h5>
+                            <div class="small text-muted">
+                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                                <strong>@Model.WarehouseName</strong> — Bin: <code class="fw-bold">@Model.LocationCode</code>
+                            </div>
+                        </div>
+                        <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                            <div class="small text-muted text-uppercase fw-semibold">Current Physical Stock</div>
+                            <div class="fs-3 fw-bold text-primary">@Model.CurrentOnHand <span class="small fs-6 text-muted">units</span></div>
+                            <div class="small text-success">
+                                <i class="bi bi-check-circle me-1"></i>Available to Promise: <strong>@Model.AvailableQuantity</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form -->
+                <form asp-action="ProcessOperation" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="StockBalanceId" />
+                    <input type="hidden" asp-for="ProductId" />
+                    <input type="hidden" asp-for="ProductName" />
+                    <input type="hidden" asp-for="SKU" />
+                    <input type="hidden" asp-for="LocationId" />
+                    <input type="hidden" asp-for="LocationCode" />
+                    <input type="hidden" asp-for="WarehouseName" />
+                    <input type="hidden" asp-for="CurrentOnHand" />
+                    <input type="hidden" asp-for="CurrentAllocated" />
+                    <input type="hidden" asp-for="OperationType" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <!-- Quantity Input -->
+                    <div class="mb-3">
+                        <label asp-for="Quantity" class="form-label fw-semibold">
+                            @(Model.OperationType == InventoryManagementApp.Models.TransactionType.Adjustment 
+                                ? "New Physical Count on Shelf:" 
+                                : "Units to Move:")
+                        </label>
+                        <div class="input-group">
+                            <input asp-for="Quantity" class="form-control form-control-lg" type="number" min="1" max="100000" />
+                            <span class="input-group-text">units</span>
+                        </div>
+                        <span asp-validation-for="Quantity" class="text-danger small"></span>
+                        @if (Model.OperationType == InventoryManagementApp.Models.TransactionType.Dispatch)
+                        {
+                            <div class="form-text text-muted">Maximum available for dispatch: <strong>@Model.AvailableQuantity units</strong>.</div>
+                        }
+                    </div>
+
+                    <!-- Reference Number -->
+                    <div class="mb-3">
+                        <label asp-for="ReferenceNumber" class="form-label fw-semibold">Reference Document / Batch Number <span class="text-danger">*</span></label>
+                        <input asp-for="ReferenceNumber" class="form-control" placeholder="e.g. PO-2026-9901, SO-2026-0044, AUDIT-2026" />
+                        <span asp-validation-for="ReferenceNumber" class="text-danger small"></span>
+                        <div class="form-text text-muted">Required for transactional audit trail traceability.</div>
+                    </div>
+
+                    <!-- Operator Name -->
+                    <div class="mb-3">
+                        <label asp-for="OperatorName" class="form-label fw-semibold">Warehouse Personnel / Operator <span class="text-danger">*</span></label>
+                        <input asp-for="OperatorName" class="form-control" />
+                        <span asp-validation-for="OperatorName" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Reason / Notes -->
+                    <div class="mb-4">
+                        <label asp-for="Notes" class="form-label fw-semibold">Transaction Notes / Justification</label>
+                        <textarea asp-for="Notes" class="form-control" rows="2" placeholder="e.g., Supplier delivery received; inspection passed."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn @btnClass px-4">
+                            <i class="bi bi-check2-circle me-1"></i> Commit Transaction
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

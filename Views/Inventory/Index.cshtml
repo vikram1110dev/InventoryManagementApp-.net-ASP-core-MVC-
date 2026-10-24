@@ -1,0 +1,215 @@
+@model InventoryManagementApp.Models.ViewModels.InventorySearchViewModel
+@{
+    ViewData["Title"] = "Real-Time Stock & Search Engine";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-funnel text-primary me-2"></i>Multi-Criteria Inventory Search & Filter</h2>
+        <p class="text-muted mb-0">Search assets across warehouses, inspect real-time bin locations, and manage stock allocations.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Transactions" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+            <i class="bi bi-journal-check"></i> Audit Ledger
+        </a>
+    </div>
+</div>
+
+<!-- Multi-Criteria Search & Filter Widget -->
+<div class="card border-0 mb-4 shadow-sm">
+    <div class="card-body p-4">
+        <form method="get" asp-action="Index" class="row g-3 align-items-end">
+            <!-- Text Search -->
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold text-muted">Keyword (SKU, Barcode, Product Name)</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" asp-for="SearchTerm" class="form-control border-start-0" placeholder="e.g. ELEC-DELL, 88411, Switch..." />
+                </div>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">Product Category</label>
+                <select asp-for="CategoryId" class="form-select">
+                    <option value="">-- All Categories --</option>
+                    @foreach (var cat in Model.CategoryOptions)
+                    {
+                        <option value="@cat.Value">@cat.Text</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Warehouse Filter -->
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">Warehouse Facility</label>
+                <select asp-for="WarehouseId" class="form-select">
+                    <option value="">-- All Warehouses --</option>
+                    @foreach (var wh in Model.WarehouseOptions)
+                    {
+                        <option value="@wh.Value">@wh.Text</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Stock Condition Status Filter -->
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-muted">Stock Status</label>
+                <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<InventoryManagementApp.Models.StockStatusFilter>()">
+                </select>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="col-12 d-flex justify-content-between align-items-center pt-2">
+                <div class="text-muted small">
+                    Showing <strong>@Model.Results.Count</strong> of <strong>@Model.TotalCount</strong> items matched
+                </div>
+                <div class="d-flex gap-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset Filters
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-sm px-4">
+                        <i class="bi bi-filter"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stock Inventory Results Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        @if (Model.Results.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-3">SKU & Asset Name</th>
+                            <th>Category</th>
+                            <th>Warehouse Location</th>
+                            <th class="text-end">Unit Cost</th>
+                            <th class="text-center">On Hand</th>
+                            <th class="text-center">Allocated</th>
+                            <th class="text-center">Available (ATP)</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-end pe-3">Inventory Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Results)
+                        {
+                            <tr>
+                                <td class="ps-3">
+                                    <div class="fw-bold text-dark">@item.ProductName</div>
+                                    <div class="small text-muted">
+                                        <code class="text-primary">@item.SKU</code>
+                                        @if (!string.IsNullOrEmpty(item.Barcode) && item.Barcode != "N/A")
+                                        {
+                                            <span class="ms-2"><i class="bi bi-upc me-1"></i>@item.Barcode</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">@item.CategoryName</span>
+                                </td>
+                                <td>
+                                    <span class="location-tag">@item.LocationCode</span>
+                                    <div class="small text-muted">@item.WarehouseName</div>
+                                </td>
+                                <td class="text-end font-monospace">
+                                    @item.UnitCost.ToString("C")
+                                </td>
+                                <td class="text-center fw-bold fs-6">
+                                    @item.QuantityOnHand
+                                </td>
+                                <td class="text-center text-muted">
+                                    @item.QuantityAllocated
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-bold text-success">@item.AvailableQuantity</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (item.IsOutOfStock)
+                                    {
+                                        <span class="badge-stock-out"><i class="bi bi-x-circle-fill me-1"></i>Out of Stock</span>
+                                    }
+                                    else if (item.IsLowStock)
+                                    {
+                                        <span class="badge-stock-low"><i class="bi bi-exclamation-triangle-fill me-1"></i>Low Stock (&le; @item.ReorderPoint)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-stock-in"><i class="bi bi-check-circle-fill me-1"></i>In Stock</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-3">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="StockIn" asp-route-id="@item.StockBalanceId" class="btn btn-outline-success" title="Receive / Stock In">
+                                            <i class="bi bi-plus-circle"></i> In
+                                        </a>
+                                        <a asp-action="StockOut" asp-route-id="@item.StockBalanceId" class="btn btn-outline-danger" title="Dispatch / Stock Out">
+                                            <i class="bi bi-dash-circle"></i> Out
+                                        </a>
+                                        <a asp-action="Adjust" asp-route-id="@item.StockBalanceId" class="btn btn-outline-secondary" title="Audit / Cycle Count Adjustment">
+                                            <i class="bi bi-sliders"></i> Adjust
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Server-Side Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <span class="small text-muted">
+                        Page <strong>@Model.PageNumber</strong> of <strong>@Model.TotalPages</strong>
+                    </span>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" 
+                               asp-route-SearchTerm="@Model.SearchTerm" 
+                               asp-route-CategoryId="@Model.CategoryId" 
+                               asp-route-WarehouseId="@Model.WarehouseId" 
+                               asp-route-Status="@Model.Status" 
+                               asp-route-PageNumber="@(Model.PageNumber - 1)">Previous</a>
+                        </li>
+                        @for (int p = 1; p <= Model.TotalPages; p++)
+                        {
+                            <li class="page-item @(p == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" asp-action="Index" 
+                                   asp-route-SearchTerm="@Model.SearchTerm" 
+                                   asp-route-CategoryId="@Model.CategoryId" 
+                                   asp-route-WarehouseId="@Model.WarehouseId" 
+                                   asp-route-Status="@Model.Status" 
+                                   asp-route-PageNumber="@p">@p</a>
+                            </li>
+                        }
+                        <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" 
+                               asp-route-SearchTerm="@Model.SearchTerm" 
+                               asp-route-CategoryId="@Model.CategoryId" 
+                               asp-route-WarehouseId="@Model.WarehouseId" 
+                               asp-route-Status="@Model.Status" 
+                               asp-route-PageNumber="@(Model.PageNumber + 1)">Next</a>
+                        </li>
+                    </ul>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox text-muted fs-1"></i>
+                <h5 class="mt-3 text-secondary">No stock balances matched your criteria</h5>
+                <p class="text-muted small">Try loosening search keywords or clearing filter constraints.</p>
+                <a asp-action="Index" class="btn btn-outline-primary btn-sm">Clear All Filters</a>
+            </div>
+        }
+    </div>
+</div>

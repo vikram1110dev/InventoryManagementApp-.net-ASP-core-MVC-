@@ -1,0 +1,163 @@
+@model InventoryManagementApp.Models.Product
+@{
+    ViewData["Title"] = "Product Details - " + Model.Name;
+    var totalOnHand = Model.StockBalances.Sum(b => b.QuantityOnHand);
+    var totalAllocated = Model.StockBalances.Sum(b => b.QuantityAllocated);
+    var totalAvailable = totalOnHand - totalAllocated;
+    var totalValuation = totalOnHand * Model.UnitCost;
+}
+
+<div class="d-flex align-items-center mb-3">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3">
+        <i class="bi bi-arrow-left"></i> Back to Catalog
+    </a>
+    <h4 class="fw-bold mb-0">Asset Details</h4>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Product Info Card -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <span class="badge bg-primary-subtle text-primary mb-2">@Model.Category.Name</span>
+                <h4 class="fw-bold text-dark">@Model.Name</h4>
+                <div class="mb-3">
+                    <span class="badge bg-secondary me-2">SKU: @Model.SKU</span>
+                    @if (!string.IsNullOrEmpty(Model.Barcode))
+                    {
+                        <span class="text-muted small"><i class="bi bi-upc me-1"></i>@Model.Barcode</span>
+                    }
+                </div>
+
+                <p class="text-muted">
+                    @(string.IsNullOrEmpty(Model.Description) ? "No description provided." : Model.Description)
+                </p>
+
+                <hr class="my-3 text-muted">
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="small text-muted">Unit Cost</div>
+                        <div class="fs-5 fw-bold text-dark">@Model.UnitCost.ToString("C")</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small text-muted">Selling Price</div>
+                        <div class="fs-5 fw-bold text-success">@Model.SellingPrice.ToString("C")</div>
+                    </div>
+                    <div class="col-6 mt-3">
+                        <div class="small text-muted">Reorder Threshold</div>
+                        <div class="fw-bold">@Model.DefaultReorderPoint units</div>
+                    </div>
+                    <div class="col-6 mt-3">
+                        <div class="small text-muted">Total Asset Valuation</div>
+                        <div class="fw-bold text-primary">@totalValuation.ToString("C")</div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-2 d-flex gap-2">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm flex-grow-1">
+                        <i class="bi bi-pencil me-1"></i> Edit Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Warehouse Bins & Recent Transactions -->
+    <div class="col-lg-7">
+        <!-- Warehouse Bins -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-geo-alt text-primary me-2"></i>Physical Warehouse Bins</h5>
+                <span class="badge bg-primary">@totalOnHand Total Units</span>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.StockBalances.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-3">Warehouse</th>
+                                    <th>Bin Location</th>
+                                    <th class="text-center">On Hand</th>
+                                    <th class="text-center">Available</th>
+                                    <th class="text-end pe-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var sb in Model.StockBalances)
+                                {
+                                    <tr>
+                                        <td class="ps-3 fw-semibold">@sb.Location.Warehouse.Name</td>
+                                        <td>
+                                            <span class="location-tag">@sb.Location.LocationCode</span>
+                                        </td>
+                                        <td class="text-center fw-bold">@sb.QuantityOnHand</td>
+                                        <td class="text-center text-success fw-bold">@sb.AvailableQuantity</td>
+                                        <td class="text-end pe-3">
+                                            <div class="btn-group btn-group-sm">
+                                                <a asp-controller="Inventory" asp-action="StockIn" asp-route-id="@sb.Id" class="btn btn-outline-success btn-sm">Stock In</a>
+                                                <a asp-controller="Inventory" asp-action="StockOut" asp-route-id="@sb.Id" class="btn btn-outline-danger btn-sm">Dispatch</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-4 text-center text-muted">
+                        No warehouse locations assigned to this item yet.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Audit History for this Product -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history text-secondary me-2"></i>Recent Stock Ledger Entries</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.StockTransactions.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var tx in Model.StockTransactions)
+                        {
+                            <div class="list-group-item px-3 py-3 border-0 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-light text-dark border me-1">@tx.TransactionType</span>
+                                        <code>@tx.ReferenceNumber</code>
+                                        <span class="text-muted small ms-2">at @tx.Location.LocationCode</span>
+                                    </div>
+                                    <div>
+                                        @if (tx.QuantityChanged > 0)
+                                        {
+                                            <span class="badge bg-success-subtle text-success fw-bold">+@tx.QuantityChanged</span>
+                                        }
+                                        else if (tx.QuantityChanged < 0)
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger fw-bold">@tx.QuantityChanged</span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="small text-muted mt-1 d-flex justify-content-between">
+                                    <span>Operator: @tx.CreatedBy</span>
+                                    <span>@tx.CreatedAtUtc.ToLocalTime().ToString("MMM dd, yyyy hh:mm tt")</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="p-3 text-center text-muted small">No transactions recorded yet.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

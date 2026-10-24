@@ -1,0 +1,111 @@
+:root {
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #1e293b;
+    background-color: #f8fafc;
+}
+
+/* Navbar styling */
+.navbar-dark.bg-dark {
+    background-color: #0f172a !important;
+}
+
+.navbar-brand {
+    letter-spacing: -0.5px;
+}
+
+/* Card Enhancements */
+.card {
+    border-radius: 0.75rem;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: var(--card-shadow-hover);
+}
+
+.stat-card {
+    border-left: 4px solid var(--primary-color);
+}
+
+.stat-card.alert-stat {
+    border-left-color: #f59e0b;
+}
+
+.stat-card.danger-stat {
+    border-left-color: #ef4444;
+}
+
+.stat-card.success-stat {
+    border-left-color: #10b981;
+}
+
+/* Table styling */
+.table {
+    vertical-align: middle;
+}
+
+.table th {
+    font-weight: 600;
+    font-size: 0.825rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    background-color: #f8fafc;
+    border-top: none;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+/* Badge styling */
+.badge-stock-in {
+    background-color: #dcfce7;
+    color: #166534;
+    font-weight: 600;
+    padding: 0.4em 0.75em;
+    border-radius: 9999px;
+}
+
+.badge-stock-low {
+    background-color: #fef3c7;
+    color: #92400e;
+    font-weight: 600;
+    padding: 0.4em 0.75em;
+    border-radius: 9999px;
+}
+
+.badge-stock-out {
+    background-color: #fee2e2;
+    color: #991b1b;
+    font-weight: 600;
+    padding: 0.4em 0.75em;
+    border-radius: 9999px;
+}
+
+/* Location Tag */
+.location-tag {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.85rem;
+    background-color: #e2e8f0;
+    color: #334155;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* Action button icons */
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.825rem;
+}
